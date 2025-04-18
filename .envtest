@@ -1,0 +1,13 @@
+DB_USER='postgres'
+DB_PASSWORD='tracking'
+DB_HOST='122.176.81.150'
+DB_PORT=5432
+DB_NAME='traccar'
+PORT=3000
+
+
+DB_HOSTREG=mars.x2ff.com
+DB_USERREG=traccarplus
+DB_PASSWORDREG=tracking
+DB_NAMEREG=traccarplus
+DB_PORTREG=5432
