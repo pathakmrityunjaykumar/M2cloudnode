@@ -452,20 +452,88 @@ const getLatestPositionByDeviceId = (req, res) => {
 
 
 
-    const query = `
-SELECT p.id, p.deviceid, p.protocol, p.servertime AS "serverTime", 
-      p.devicetime AS "deviceTime", p.fixtime AS "fixTime", p.valid, 
-      p.latitude, p.longitude, p.altitude, p.speed, p.course, 
-      p.address, p.attributes::json AS attributes, 
-      p.accuracy, p.network, p.geofenceids, 
-      d.name AS device_name, d.uniqueid
-FROM tc_positions p
-INNER JOIN tc_devices d ON p.deviceid = d.id
-WHERE p.deviceid = $1
-  AND (p.attributes::jsonb)->>'packetType' IS NOT NULL
-ORDER BY p.servertime DESC
-LIMIT 1;
+//     const query = `
+// SELECT p.id, p.deviceid, p.protocol, p.servertime AS "serverTime", 
+//       p.devicetime AS "deviceTime", p.fixtime AS "fixTime", p.valid, 
+//       p.latitude, p.longitude, p.altitude, p.speed, p.course, 
+//       p.address, p.attributes::json AS attributes, 
+//       p.accuracy, p.network, p.geofenceids, 
+//       d.name AS device_name, d.uniqueid
+// FROM tc_positions p
+// INNER JOIN tc_devices d ON p.deviceid = d.id
+// WHERE p.deviceid = $1
+//   AND (p.attributes::jsonb)->>'packetType' IS NOT NULL
+// ORDER BY p.servertime DESC
+// LIMIT 1;
+// `;
+
+
+
+// const query = `
+//   SELECT 
+//     p.id, 
+//     p.deviceid, 
+//     p.protocol, 
+//     (p.servertime + INTERVAL '5 hours 30 minutes') AS "serverTime", 
+//     (p.devicetime + INTERVAL '5 hours 30 minutes') AS "deviceTime", 
+//     (p.fixtime + INTERVAL '5 hours 30 minutes') AS "fixTime", 
+//     p.valid, 
+//     p.latitude, 
+//     p.longitude, 
+//     p.altitude, 
+//     p.speed, 
+//     p.course, 
+//     p.address, 
+//     p.attributes::json AS attributes, 
+//     p.accuracy, 
+//     p.network, 
+//     p.geofenceids, 
+//     d.name AS device_name, 
+//     d.uniqueid
+//   FROM tc_positions p
+//   INNER JOIN tc_devices d ON p.deviceid = d.id
+//   WHERE p.deviceid = $1
+//     AND (p.attributes::jsonb)->>'packetType' IS NOT NULL
+//   ORDER BY p.servertime DESC
+//   LIMIT 1;
+// `;
+
+
+
+const query = `
+  SELECT 
+    d.id AS device_id,
+    d.name AS device_name,
+    d.uniqueid,
+    p.id AS position_id,
+    p.protocol,
+    (p.servertime + INTERVAL '5 hours 30 minutes') AS "serverTime", 
+    (p.devicetime + INTERVAL '5 hours 30 minutes') AS "deviceTime", 
+    (p.fixtime + INTERVAL '5 hours 30 minutes') AS "fixTime", 
+    p.valid, 
+    p.latitude, 
+    p.longitude, 
+    p.altitude, 
+    p.speed, 
+    p.course, 
+    p.address, 
+    p.attributes::json AS attributes, 
+    p.accuracy, 
+    p.network, 
+    p.geofenceids
+  FROM tc_devices d
+  JOIN LATERAL (
+    SELECT p.*
+    FROM tc_positions p
+    WHERE p.deviceid = d.id
+      AND (p.attributes::jsonb->>'packetType') IS NOT NULL
+      AND (p.attributes::jsonb->>'packetType') != '10'
+    ORDER BY p.fixtime DESC
+    LIMIT 1
+  ) p ON true
+  WHERE d.id = $1;
 `;
+
 
 
     // Helper function to send data
